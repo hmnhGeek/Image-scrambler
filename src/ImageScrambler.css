@@ -1,0 +1,111 @@
+.scrambler-container {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px 30px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.scrambler-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.file-input,
+.text-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.text-input {
+  margin-bottom: 1rem;
+}
+
+.mode-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.mode-button {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-button.active {
+  background-color: #0077ff;
+  color: white;
+  border-color: #0077ff;
+}
+
+.mode-button:hover {
+  background-color: #e0e0e0;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.primary-button {
+  background-color: #0077ff;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #005fcc;
+}
+
+.secondary-button {
+  background-color: #444;
+  color: white;
+}
+
+.secondary-button:hover {
+  background-color: #222;
+}
+
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.image-canvas {
+  max-width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.note {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
