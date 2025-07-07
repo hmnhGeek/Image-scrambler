@@ -100,6 +100,15 @@ function ImageScrambler() {
     setImageList(files);
   };
 
+  const downloadImage = (dataUrl, filename) => {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link); // needed for Firefox
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const processSelected = async () => {
     if (!key) return alert("Please enter a secret key");
     setProcessedImages([]);
@@ -107,6 +116,10 @@ function ImageScrambler() {
     if (mode === "encrypt" && selectedImage) {
       const processed = await processImageFile(selectedImage);
       setProcessedImages([processed]);
+
+      // 🔽 Trigger auto-download
+      const baseName = processed.name.replace(/\.[^/.]+$/, "");
+      downloadImage(processed.url, `${baseName}_scrambled.png`);
     } else if (mode === "decrypt" && imageList.length > 0) {
       for (const file of imageList) {
         const processed = await processImageFile(file);
@@ -191,7 +204,7 @@ function ImageScrambler() {
             )}
 
             <input
-              type="text"
+              type="password"
               placeholder="Enter secret key"
               value={key}
               onChange={(e) => setKey(e.target.value)}
