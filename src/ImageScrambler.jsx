@@ -108,12 +108,10 @@ function ImageScrambler() {
       const processed = await processImageFile(selectedImage);
       setProcessedImages([processed]);
     } else if (mode === "decrypt" && imageList.length > 0) {
-      const results = [];
       for (const file of imageList) {
         const processed = await processImageFile(file);
-        results.push(processed);
+        setProcessedImages((prev) => [...prev, processed]);
       }
-      setProcessedImages(results);
     } else {
       alert("Please select input and mode correctly.");
     }
