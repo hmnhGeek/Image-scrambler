@@ -1,10 +1,10 @@
 import React, { useRef, useState } from "react";
 import "./ImageScrambler.css";
-import { Box, IconButton, ImageList, ImageListItem } from "@mui/material";
+import { Box, ImageList, ImageListItem } from "@mui/material";
 
 function ImageScrambler() {
   const canvasRef = useRef();
-  const [mode, setMode] = useState("encrypt");
+  const [mode, setMode] = useState(null); // null means no mode selected yet
   const [key, setKey] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageList, setImageList] = useState([]);
@@ -117,6 +117,23 @@ function ImageScrambler() {
     }
   };
 
+  const resetAll = () => {
+    setKey("");
+    setMode(null);
+    setSelectedImage(null);
+    setImageList([]);
+    setProcessedImages([]);
+    setExpandedIndex(null);
+    setAnimateIn(false);
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = canvas.height = 0;
+    }
+  };
+
   const openOverlay = (index) => {
     setExpandedIndex(index);
     setTimeout(() => setAnimateIn(true), 10);
@@ -136,50 +153,61 @@ function ImageScrambler() {
       <div className="scrambler-container">
         <h2>🔐 Image Scrambler</h2>
 
-        <input
-          type="text"
-          placeholder="Enter secret key"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          className="text-input"
-        />
-
-        <div className="mode-toggle">
-          <button
-            className={`mode-button ${mode === "encrypt" ? "active" : ""}`}
-            onClick={() => setMode("encrypt")}
-          >
-            Encrypt
-          </button>
-          <button
-            className={`mode-button ${mode === "decrypt" ? "active" : ""}`}
-            onClick={() => setMode("decrypt")}
-          >
-            Decrypt
-          </button>
-        </div>
-
-        {mode === "encrypt" && (
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleEncryptImageSelect}
-          />
+        {mode === null && (
+          <div className="mode-toggle">
+            <button className="mode-button" onClick={() => setMode("encrypt")}>
+              Encrypt
+            </button>
+            <button className="mode-button" onClick={() => setMode("decrypt")}>
+              Decrypt
+            </button>
+          </div>
         )}
 
-        {mode === "decrypt" && (
-          <input
-            type="file"
-            webkitdirectory="true"
-            directory="true"
-            multiple
-            onChange={handleDecryptFolder}
-          />
-        )}
+        {mode !== null && (
+          <>
+            {mode === "encrypt" && (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEncryptImageSelect}
+                />
+                <p>
+                  Select a folder to save the scrambled image (not implemented
+                  in browser-only apps)
+                </p>
+              </>
+            )}
 
-        <button className="primary-button" onClick={processSelected}>
-          Process
-        </button>
+            {mode === "decrypt" && (
+              <input
+                type="file"
+                webkitdirectory="true"
+                directory="true"
+                multiple
+                onChange={handleDecryptFolder}
+              />
+            )}
+
+            <input
+              type="text"
+              placeholder="Enter secret key"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              className="text-input"
+            />
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "1rem" }}>
+              <button className="primary-button" onClick={processSelected}>
+                Submit
+              </button>
+              <button className="secondary-button" onClick={resetAll}>
+                Reset
+              </button>
+            </div>
+          </>
+        )}
 
         <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
@@ -187,46 +215,19 @@ function ImageScrambler() {
       <Box sx={{ maxWidth: 1200, margin: "auto", mt: 5 }}>
         <ImageList cols={3} gap={8}>
           {processedImages.map((img, i) => (
-            <ImageListItem
-              key={img.id}
-              sx={{
-                position: "relative",
-                "&:hover .remove-icon": {
-                  opacity: 1,
-                },
-              }}
-            >
+            <ImageListItem key={img.name}>
               <img
                 src={img.url}
                 alt={`img-${i}`}
                 loading="lazy"
                 style={{ cursor: "pointer" }}
                 onClick={() => openOverlay(i)}
-                // onError={() => handleImageError(img.id)}
               />
-              {/* <IconButton
-                className="remove-icon"
-                size="small"
-                onClick={() => removeSlide(img.id)}
-                sx={{
-                  position: "absolute",
-                  top: 4,
-                  right: 4,
-                  backgroundColor: "rgba(0,0,0,0.6)",
-                  color: "white",
-                  opacity: 0,
-                  transition: "opacity 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: "rgba(255,0,0,0.7)",
-                  },
-                }}
-              >
-                <Remove fontSize="small" />
-              </IconButton> */}
             </ImageListItem>
           ))}
         </ImageList>
       </Box>
+
       {expandedIndex !== null && currentImage && (
         <div
           onClick={closeOverlay}
