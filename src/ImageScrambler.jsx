@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./ImageScrambler.css";
 import { Box, ImageList, ImageListItem } from "@mui/material";
 
@@ -158,6 +158,26 @@ function ImageScrambler() {
       setExpandedIndex(null);
     }, 300);
   };
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (expandedIndex === null) return;
+
+      if (e.key === "Escape") closeOverlay();
+      else if (e.key === "ArrowRight")
+        setExpandedIndex((prev) => (prev + 1) % processedImages.length);
+      else if (e.key === "ArrowLeft")
+        setExpandedIndex(
+          (prev) => (prev - 1 + processedImages.length) % processedImages.length
+        );
+    },
+    [expandedIndex, processedImages.length]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const currentImage = processedImages[expandedIndex]?.url;
 
