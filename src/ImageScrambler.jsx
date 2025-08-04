@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./ImageScrambler.css";
 import { Box, ImageList, ImageListItem } from "@mui/material";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 function ImageScrambler() {
   const canvasRef = useRef();
-  const [mode, setMode] = useState(null); // null means no mode selected yet
+  const [mode, setMode] = useState(null);
   const [key, setKey] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
   const [imageList, setImageList] = useState([]);
   const [processedImages, setProcessedImages] = useState([]);
   const [expandedIndex, setExpandedIndex] = useState(null);
@@ -33,7 +34,7 @@ function ImageScrambler() {
     };
   };
 
-  const processImageFile = async (file) => {
+  const processImageFile = async (file, mode) => {
     const img = new Image();
     img.src = URL.createObjectURL(file);
 
@@ -87,53 +88,48 @@ function ImageScrambler() {
     });
   };
 
-  const handleEncryptImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    setSelectedImage(file);
-  };
-
-  const handleDecryptFolder = (e) => {
+  const handleFolderSelect = (e) => {
     const files = Array.from(e.target.files).filter((f) =>
       f.type.startsWith("image/")
     );
     setImageList(files);
   };
 
-  const downloadImage = (dataUrl, filename) => {
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = filename;
-    document.body.appendChild(link); // needed for Firefox
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const processSelected = async () => {
     if (!key) return alert("Please enter a secret key");
+    if (imageList.length === 0)
+      return alert("Please select a folder with images");
+
     setProcessedImages([]);
 
-    if (mode === "encrypt" && selectedImage) {
-      const processed = await processImageFile(selectedImage);
-      setProcessedImages([processed]);
+    let zip, folder;
+    if (mode === "encrypt") {
+      zip = new JSZip();
+      folder = zip.folder("scrambled_images");
+    }
 
-      // 🔽 Trigger auto-download
-      const baseName = processed.name.replace(/\.[^/.]+$/, "");
-      downloadImage(processed.url, `${baseName}_scrambled.png`);
-    } else if (mode === "decrypt" && imageList.length > 0) {
-      for (const file of imageList) {
-        const processed = await processImageFile(file);
-        setProcessedImages((prev) => [...prev, processed]);
+    for (const file of imageList) {
+      const processed = await processImageFile(file, mode);
+      setProcessedImages((prev) => [...prev, processed]);
+
+      if (mode === "encrypt") {
+        const baseName = file.name.replace(/\.[^/.]+$/, "");
+        const data = processed.url.split(",")[1]; // remove "data:image/png;base64,"
+        folder.file(`${baseName}_scrambled.png`, data, { base64: true });
       }
-    } else {
-      alert("Please select input and mode correctly.");
+    }
+
+    // Trigger ZIP download only in encrypt mode
+    if (mode === "encrypt") {
+      zip.generateAsync({ type: "blob" }).then((content) => {
+        saveAs(content, "scrambled_images.zip");
+      });
     }
   };
 
   const resetAll = () => {
     setKey("");
     setMode(null);
-    setSelectedImage(null);
     setImageList([]);
     setProcessedImages([]);
     setExpandedIndex(null);
@@ -189,40 +185,23 @@ function ImageScrambler() {
         {mode === null && (
           <div className="mode-toggle">
             <button className="mode-button" onClick={() => setMode("encrypt")}>
-              Encrypt
+              Encrypt Folder
             </button>
             <button className="mode-button" onClick={() => setMode("decrypt")}>
-              Decrypt
+              Decrypt Folder
             </button>
           </div>
         )}
 
         {mode !== null && (
           <>
-            {mode === "encrypt" && (
-              <>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleEncryptImageSelect}
-                />
-                <p>
-                  Select a folder to save the scrambled image (not implemented
-                  in browser-only apps)
-                </p>
-              </>
-            )}
-
-            {mode === "decrypt" && (
-              <input
-                type="file"
-                webkitdirectory="true"
-                directory="true"
-                multiple
-                onChange={handleDecryptFolder}
-              />
-            )}
-
+            <input
+              type="file"
+              webkitdirectory="true"
+              directory="true"
+              multiple
+              onChange={handleFolderSelect}
+            />
             <input
               type="password"
               placeholder="Enter secret key"
