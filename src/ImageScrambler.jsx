@@ -111,7 +111,6 @@ function ImageScrambler() {
     for (const file of imageList) {
       const processed = await processImageFile(file, mode);
       setProcessedImages((prev) => [...prev, processed]);
-
       if (mode === "encrypt") {
         const baseName = file.name.replace(/\.[^/.]+$/, "");
         const data = processed.url.split(",")[1]; // remove "data:image/png;base64,"
